@@ -11,11 +11,12 @@ import (
 )
 
 type reporter struct {
-	reg      metrics.Registry
-	interval time.Duration
-	align    bool
-	url      uurl.URL
-	database string
+	reg       metrics.Registry
+	interval  time.Duration
+	align     bool
+	url       uurl.URL
+	database  string
+	unsafeSsl bool
 
 	measurement string
 	username    string
@@ -26,12 +27,12 @@ type reporter struct {
 }
 
 // InfluxDB starts a InfluxDB reporter which will post the metrics from the given registry at each d interval.
-func InfluxDB(r metrics.Registry, d time.Duration, url, database, measurement, username, password string, align bool) {
-	InfluxDBWithTags(r, d, url, database, measurement, username, password, map[string]string{}, align)
+func InfluxDB(r metrics.Registry, d time.Duration, url, database, measurement, username, password string, align bool, unsafeSsl bool) {
+	InfluxDBWithTags(r, d, url, database, measurement, username, password, map[string]string{}, align, unsafeSsl)
 }
 
 // InfluxDBWithTags starts a InfluxDB reporter which will post the metrics from the given registry at each d interval with the specified tags
-func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, measurement, username, password string, tags map[string]string, align bool) {
+func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, measurement, username, password string, tags map[string]string, align bool, unsafeSsl bool) {
 	u, err := uurl.Parse(url)
 	if err != nil {
 		log.Printf("unable to parse InfluxDB url %s. err=%v", url, err)
@@ -48,6 +49,7 @@ func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, measur
 		password:    password,
 		tags:        tags,
 		align:       align,
+		unsafeSsl:   unsafeSsl,
 	}
 	if err := rep.makeClient(); err != nil {
 		log.Printf("unable to make InfluxDB client. err=%v", err)
@@ -59,9 +61,10 @@ func InfluxDBWithTags(r metrics.Registry, d time.Duration, url, database, measur
 
 func (r *reporter) makeClient() (err error) {
 	r.client, err = client.NewClient(client.Config{
-		URL:      r.url,
-		Username: r.username,
-		Password: r.password,
+		URL:       r.url,
+		Username:  r.username,
+		Password:  r.password,
+		UnsafeSsl: r.unsafeSsl,
 	})
 
 	return
