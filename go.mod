@@ -1,4 +1,4 @@
-module github.com/vrischmann/go-metrics-influxdb
+module github.com/siddharthborah/go-metrics-influxdb
 
 go 1.13
 
